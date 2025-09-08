@@ -80,11 +80,6 @@ class PushToGithubRequest(BaseModel):
     repoName: str
     token: str
 
-# COMMENTED OUT: Netlify deployment functionality
-# class NetlifyDeployRequest(BaseModel):
-#     projectId: str
-#     token: str
-#     siteName: str = "generated-project"
 
 class TerminalCommandRequest(BaseModel):
     projectId: str
