@@ -27,14 +27,35 @@ from firebase_admin import credentials, firestore
 from firebase_admin.firestore import SERVER_TIMESTAMP
 
 
+
+# Load environment variables from .env (for local dev)
 load_dotenv()
 
+# Firebase credentials from environment variable (for Vercel/Railway)
+import base64
+
+firebase_creds_env = os.getenv("FIREBASE_SERVICE_ACCOUNT")
+firebase_project_id = os.getenv("FIREBASE_PROJECT_ID")
+
 try:
-    cred = credentials.Certificate(os.getenv("FIREBASE_SERVICE_ACCOUNT"))
-    firebase_admin.initialize_app(cred, {
-        'databaseURL': f'https://{os.getenv("FIREBASE_PROJECT_ID")}.firebaseio.com'
-    })
-    db = firestore.client()
+    if firebase_creds_env:
+        # Try to parse as JSON, or decode if base64
+        try:
+            # If it's a base64 string, decode it
+            if firebase_creds_env.strip().startswith('{'):
+                creds_dict = json.loads(firebase_creds_env)
+            else:
+                creds_json = base64.b64decode(firebase_creds_env).decode('utf-8')
+                creds_dict = json.loads(creds_json)
+            cred = credentials.Certificate(creds_dict)
+        except Exception as e:
+            raise Exception(f"Failed to parse FIREBASE_SERVICE_ACCOUNT env variable: {e}")
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': f'https://{firebase_project_id}.firebaseio.com'
+        })
+        db = firestore.client()
+    else:
+        raise Exception('FIREBASE_SERVICE_ACCOUNT env variable not set')
 except Exception as e:
     print(f"Error initializing Firebase: {str(e)}")
     raise
