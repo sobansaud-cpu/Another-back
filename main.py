@@ -13,7 +13,6 @@ import asyncio
 from pathlib import Path
 from pydantic import BaseModel
 import httpx
-import stripe
 from typing import Optional, Dict, List
 from datetime import datetime, timedelta
 from utils.file_utils import save_project_files, zip_project_files
@@ -974,38 +973,7 @@ async def run_migration():
             content={"error": f"Migration failed: {str(e)}"}
         )
 
-@app.post("/stripe-webhook")
-async def stripe_webhook(request: Request):
-    payload = await request.body()
-    sig_header = request.headers.get('stripe-signature')
-    
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, os.getenv('STRIPE_WEBHOOK_SECRET')
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError as e:
-        raise HTTPException(status_code=400, detail="Invalid signature")
 
-    # Handle checkout.session.completed event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        user_id = session['client_reference_id']
-        plan_id = session['metadata'].get('plan_id')
-        
-        # Update user's plan in Firestore
-        user_ref = db.collection('users').document(user_id)
-        
-        if plan_id == 'pro':
-            expiry_date = datetime.now() + timedelta(days=30)
-            user_ref.update({
-                'plan': 'pro',
-                'maxDailyGenerations': 20,
-                'planExpiry': expiry_date.isoformat()
-            })
-    
-    return {"status": "success"}
 
 
 @app.get("/projects/{user_id}")
