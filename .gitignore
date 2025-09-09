@@ -42,8 +42,7 @@ yarn-error.log
 .env
 .env.*
 
-# Credentials
-credentials/
+
 
 # OS files
 .DS_Store
