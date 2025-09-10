@@ -64,12 +64,23 @@ except Exception as e:
 app = FastAPI()
 
 # Configure CORS
+# origins = [
+#     "https://a-nother.vercel.app",
+#     "http://127.0.0.1:3000",  
+#     "http://localhost:8000",
+#     "https://sandpack.codesandbox.io",
+#     "https://*.netlify.app"  
+# ]
+
 origins = [
-    "https://a-nother.vercel.app/",
-    "http://127.0.0.1:3000",  
-    "http://localhost:8000",
-    "https://sandpack.codesandbox.io",
-    "https://*.netlify.app"  
+    # Production
+    "https://a-nother.vercel.app",                 # frontend (Vercel)
+    "https://another-back-production.up.railway.app",  # backend (Railway)
+
+    # Development / Local Testing
+    "http://127.0.0.1:3000",   # local frontend (Next.js)
+    "http://localhost:3000",   # local frontend
+    "http://localhost:8000",   # local backend
 ]
 
 app.add_middleware(
